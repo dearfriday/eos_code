@@ -30,3 +30,12 @@ rm -rf /home/friday/eosio-wallet/one1.wallet
 #permission
 ./cleos set account permission test1 active '{"threshold": 1,"keys": [{"key": "EOS4vbn668HGuMoCKK4dFWqPvgK1FxHc5FfP5Rt7DtVXTk7RkPmwM","weight": 1}],"accounts": [{"permission":{"actor":"test.coin","permission":"eosio.code"},"weight":1}]}' owner -p test1
 ./cleos set account permission test2 active '{"threshold": 1,"keys": [{"key": "EOS4vbn668HGuMoCKK4dFWqPvgK1FxHc5FfP5Rt7DtVXTk7RkPmwM","weight": 1}],"accounts": [{"permission":{"actor":"test.coin","permission":"eosio.code"},"weight":1}]}' owner -p test2
+
+
+#./cleos push action test.coin pushbet  '[1, "1.0000 TST", "test1"]' -p test1
+#./cleos push action test.coin deposit '["test1", "100.0000 TST"]' -p test1
+#
+#
+#
+#
+#
