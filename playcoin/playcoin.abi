@@ -72,19 +72,70 @@
           "type": "asset"
         }
       ]
-    },{
-      "name":"account",
-      "base":"",
-      "fields":[
+    },
+    {
+      "name": "account",
+      "base": "",
+      "fields": [
         {
-          "name":"owner",
-          "type":"account_name"
-        },{
-          "name":"balance",
-          "type":"asset"
-        },{
-          "name":"opengames",
-          "type":"uint32"
+          "name": "owner",
+          "type": "account_name"
+        },
+        {
+          "name": "balance",
+          "type": "asset"
+        },
+        {
+          "name": "opengames",
+          "type": "uint32"
+        }
+      ]
+    },
+    {
+      "name": "globalgame",
+      "base": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uint64"
+        },
+        {
+          "name": "nextgameid",
+          "type": "uint64"
+        },
+        {
+          "name": "islocked",
+          "type": "bool"
+        },
+        {
+          "name": "lockblocknum",
+          "type": "int"
+        }
+      ]
+    },
+    {
+      "name": "offer",
+      "base": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uint64"
+        },
+        {
+          "name": "owner",
+          "type": "account_name"
+        },
+        {
+          "name": "bet",
+          "type": "asset"
+        },
+        {
+          "name": "max",
+          "type": "uint32"
+        },
+        {
+          "name": "commitment",
+          "type": "checksum256"
         }
       ]
     }
@@ -127,6 +178,28 @@
         "account_name"
       ],
       "type": "account"
+    },
+    {
+      "name": "global",
+      "index_type": "i64",
+      "key_names": [
+        "id"
+      ],
+      "key_types": [
+        "uint64"
+      ],
+      "type": "globalgame"
+    },
+    {
+      "name": "offer",
+      "index_type": "i64",
+      "key_names": [
+        "id"
+      ],
+      "key_types": [
+        "uint64"
+      ],
+      "type": "offer"
     }
   ],
   "ricardian_clauses": [],
