@@ -105,37 +105,11 @@
         },
         {
           "name": "islocked",
-          "type": "bool"
-        },
-        {
-          "name": "lockblocknum",
-          "type": "int"
-        }
-      ]
-    },
-    {
-      "name": "offer",
-      "base": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "uint64"
-        },
-        {
-          "name": "owner",
-          "type": "account_name"
-        },
-        {
-          "name": "bet",
-          "type": "asset"
-        },
-        {
-          "name": "max",
           "type": "uint32"
         },
         {
-          "name": "commitment",
-          "type": "checksum256"
+          "name": "lockblocknum",
+          "type": "uint32"
         }
       ]
     }
@@ -189,17 +163,6 @@
         "uint64"
       ],
       "type": "globalgame"
-    },
-    {
-      "name": "offer",
-      "index_type": "i64",
-      "key_names": [
-        "id"
-      ],
-      "key_types": [
-        "uint64"
-      ],
-      "type": "offer"
     }
   ],
   "ricardian_clauses": [],

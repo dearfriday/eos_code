@@ -7,14 +7,14 @@
 #include <eosiolib/contract.hpp>
 #include <eosiolib/transaction.h>
 
-using eosio::key256;
-using eosio::indexed_by;
-using eosio::const_mem_fun;
-using eosio::asset;
-using eosio::permission_level;
 using eosio::action;
-using eosio::print;
+using eosio::asset;
+using eosio::const_mem_fun;
+using eosio::indexed_by;
+using eosio::key256;
 using eosio::name;
+using eosio::permission_level;
+using eosio::print;
 
 class playcoin : public eosio::contract
 {
@@ -22,9 +22,8 @@ class playcoin : public eosio::contract
     playcoin(account_name self)
         : eosio::contract(self)
           // , game(_self, _self),
-        ,globalgame(_self, _self)
-        ,accounts(_self, _self)
-        ,offers(_self, _self)
+          ,
+          globalgame(_self, _self), accounts(_self, _self), offers(_self, _self)
     {
     }
 
@@ -45,16 +44,15 @@ class playcoin : public eosio::contract
                 gl.nextgameid = 0;
             });
         }
-        
-        auto itr = offers.emplace(_self, [&](auto &obj){
+
+        auto itr = offers.emplace(_self, [&](auto &obj) {
+            obj.id         = offers.available_primary_key();
             obj.owner = player;
             obj.bet = bet;
             obj.max = is_big;
             obj.gameid = gl_game->nextgameid;
         });
         print("push offer ", name{itr->owner}, " bet ", itr->bet.amount, "\n");
-
-
     }
 
     /// @abi action
@@ -71,12 +69,11 @@ class playcoin : public eosio::contract
         eosio_assert(player == _self, "only self can lockgame");
         auto gl_game = globalgame.begin();
         eosio_assert(gl_game != globalgame.end(), "global game not find. please offer");
-        globalgame.modify(gl_game, 0, [](auto &obj){
+        globalgame.modify(gl_game, 0, [&](auto &obj) {
             obj.islocked = true;
             obj.lockblocknum = tapos_block_num();
         });
         print("lock game num ", gl_game->lockblocknum);
-
     }
 
     // /// @abi action
@@ -85,47 +82,112 @@ class playcoin : public eosio::contract
         eosio_assert(player == _self, "only self can open result");
 
         int rand = tapos_block_prefix() % 2;
+        rand = rand > 0 ? rand : -rand;
         print("open result prefix num ", rand, "  ret ", rand % 2);
-        
+
         //find global game
         auto gl_game = globalgame.begin();
         eosio_assert(gl_game != globalgame.end(), "global game not find. please offer");
-        globalgame.modify(gl_game, 0, [](auto &obj){
-            obj.islocked = true;
-            obj.lockblocknum = tapos_block_num();
-        });
+        // globalgame.modify(gl_game, 0, [](auto &obj) {
+        //     obj.islocked = true;
+        //     obj.lockblocknum = tapos_block_num();
+        // });
 
         auto itr = offers.template get_index<N(gameid)>();
         auto itr_lower = itr.lower_bound(gl_game->nextgameid);
-        if(itr_lower == itr.end()){
+        if (itr_lower == itr.end())
+        {
             eosio_assert(false, "not find offer.");
         }
+       
         uint32_t up = 0;
         uint32_t down = 0;
-        std::map<account_name, asset> up_all;
-        std::map<account_name, asset> down_all;
+        std::map<account_name, uint32_t> up_all;
+        std::map<account_name, uint32_t> down_all;
         account_name up_max_player;
-        asset       up_max_bet;
+        asset up_max_bet;
         account_name down_max_bet_player;
-        asset       down_max_bet;
+        asset down_max_bet;
 
-        for(auto tt = itr_lower ; tt != itr.end();tt++){
-            if(tt->max == 1){
+        
+        for (auto tt = itr_lower; tt != itr.end(); tt++)
+        {
+            if (tt->max == 1)
+            {
                 down += tt->bet.amount;
-                up_all[tt->owner] += tt->bet;
-                if(up_max_bet_player.)
+                up_all[tt->owner] += tt->bet.amount;
+                if (up_max_bet.amount < tt->bet.amount)
+                {
+                    up_max_player = tt->owner;
+                    up_max_bet = tt->bet;
+                }
             }
-            else{
+            else
+            {
                 up += tt->bet.amount;
-                down_all[tt->owner] += tt->bet;
+                down_all[tt->owner] += tt->bet.amount;
+                if (down_max_bet.amount < tt->bet.amount)
+                {
+                    down_max_bet = tt->bet;
+                    down_max_bet_player = tt->owner;
+                }
             }
         }
-        uint32_t percent = 10000;
-        if(rand == 1){  //
-            uint32_t pp = up * percent / down;
+        print("up size = ", up_all.size(), "  down size = ", down_all.size(), "\n");
 
+        eosio_assert((up != 0 && down !=0), "not enough offer.");
+        // uint32_t percent = 10000;
+        if (rand == 1)
+        { //
+            uint32_t cost = 0;
+            for (auto &up_itr : up_all)
+            {
+                auto to_player = accounts.find(up_itr.first);
+                uint32_t to_amount = down * up_itr.second / up;
+                cost += to_amount;
+                accounts.modify(to_player, 0, [&](auto &obj){
+                    obj.balance.amount += to_amount;
+                });
+            }
+            eosio_assert(cost <= down , "error cost < down!!!!!\n");
+            if(cost < down){
+                auto to_player = accounts.find(up_max_player);
+                accounts.modify(to_player, 0, [&](auto &obj){
+                    obj.balance.amount += down - cost;
+                });
+            }
+            for(auto &down_itr : down_all){
+                auto from_player = accounts.find(down_itr.first);
+                accounts.modify(from_player, 0, [&](auto &obj){
+                    obj.balance.amount -= down_itr.second;
+                });
+            }
+
+        }else{
+            uint32_t cost = 0;
+            for (auto &down_itr : down_all)
+            {
+                auto to_player = accounts.find(down_itr.first);
+                uint32_t to_amount = up * down_itr.second / down;
+                cost += to_amount;
+                accounts.modify(to_player, 0, [&](auto &obj){
+                    obj.balance.amount += to_amount;
+                });
+            }
+            eosio_assert(cost <= up , "error cost < up!!!!!\n");
+            if(cost < up){
+                auto to_player = accounts.find(down_max_bet_player);
+                accounts.modify(to_player, 0, [&](auto &obj){
+                    obj.balance.amount += down - cost;
+                });
+            }
+            for(auto &down_itr : up_all){
+                auto from_player = accounts.find(down_itr.first);
+                accounts.modify(from_player, 0, [&](auto &obj){
+                    obj.balance.amount -= down_itr.second;
+                });
+            }
         }
-
     }
 
     /// @abi action
@@ -142,18 +204,15 @@ class playcoin : public eosio::contract
         }
 
         action(
-            permission_level{ from, N(active) },
+            permission_level{from, N(active)},
             N(test.token), N(transfer),
-            std::make_tuple(from, _self, bet, std::string(""))
-         ).send();
+            std::make_tuple(from, _self, bet, std::string("")))
+            .send();
 
-
-
-        accounts.modify(itr, 0, [&](auto &obj){
+        accounts.modify(itr, 0, [&](auto &obj) {
             obj.balance.amount += bet.amount;
             obj.balance.symbol = bet.symbol;
         });
-
     }
 
   private:
@@ -194,8 +253,8 @@ class playcoin : public eosio::contract
     {
         uint64_t id;
         uint64_t nextgameid = 0;
-        bool islocked = false;
-        int  lockblocknum = 0;
+        uint32_t islocked  = 0;
+        uint32_t lockblocknum = 0;
         uint64_t primary_key() const { return id; }
 
         EOSLIB_SERIALIZE(globalgame, (id)(nextgameid)(islocked)(lockblocknum))
@@ -209,20 +268,19 @@ class playcoin : public eosio::contract
         account_name owner;
         asset bet;
         uint32_t max; //true max, false min
-        checksum256 commitment;
         uint64_t gameid = 0;
-        account_name    by_owner()const{ return owner;}
-        uint64_t        by_game_id()const{return gameid;}
+        account_name by_owner() const { return owner; }
+        uint64_t by_game_id() const { return gameid; }
         uint64_t by_bet() const { return (uint64_t)bet.amount; }
         uint64_t primary_key() const { return id; }
 
-        EOSLIB_SERIALIZE(offer, (id)(owner)(commitment)(gameid))
+        EOSLIB_SERIALIZE(offer, (id)(owner)(bet)(max)(gameid))
     };
 
     typedef eosio::multi_index<N(offer), offer,
-        indexed_by<N(owner), const_mem_fun<offer, account_name, &offer::by_owner>>,
-        indexed_by<N(gameid),const_mem_fun<offer, uint64_t, &offer::by_game_id>>
-    > offer_index;
+                               indexed_by<N(owner), const_mem_fun<offer, account_name, &offer::by_owner>>,
+                               indexed_by<N(gameid), const_mem_fun<offer, uint64_t, &offer::by_game_id>>>
+        offer_index;
 
     // /*
     //         member
@@ -230,7 +288,7 @@ class playcoin : public eosio::contract
     // game_index game;
     globalindex globalgame;
     account_index accounts;
-    offer_index     offers;
+    offer_index offers;
 };
 
 // EOSIO_ABI(playcoin, (pushbet)(cancelbet)(lockgame)(openresult))

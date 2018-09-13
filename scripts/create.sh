@@ -14,6 +14,8 @@ rm -rf /home/friday/eosio-wallet/one1.wallet
 
 ./cleos create account eosio test1 EOS6fDWAjxmuQmj1kgWz2VjThtAn2fUFZGsnatecMHCFpB13DkrRt EOS4vbn668HGuMoCKK4dFWqPvgK1FxHc5FfP5Rt7DtVXTk7RkPmwM
 ./cleos create account eosio test2 EOS6fDWAjxmuQmj1kgWz2VjThtAn2fUFZGsnatecMHCFpB13DkrRt EOS4vbn668HGuMoCKK4dFWqPvgK1FxHc5FfP5Rt7DtVXTk7RkPmwM
+./cleos create account eosio test3 EOS6fDWAjxmuQmj1kgWz2VjThtAn2fUFZGsnatecMHCFpB13DkrRt EOS4vbn668HGuMoCKK4dFWqPvgK1FxHc5FfP5Rt7DtVXTk7RkPmwM
+./cleos create account eosio test4 EOS6fDWAjxmuQmj1kgWz2VjThtAn2fUFZGsnatecMHCFpB13DkrRt EOS4vbn668HGuMoCKK4dFWqPvgK1FxHc5FfP5Rt7DtVXTk7RkPmwM
 
 
 
@@ -26,14 +28,29 @@ rm -rf /home/friday/eosio-wallet/one1.wallet
 #./cleos push action test.token issue '["test1", "100.0000 TST", "init"]' -p test.token
 ./cleos push action test.token issue '["test1", "10000.0000 TST", "init"]' -p test.token
 ./cleos push action test.token issue '["test2", "10000.0000 TST", "init"]' -p test.token
+./cleos push action test.token issue '["test3", "10000.0000 TST", "init"]' -p test.token
+./cleos push action test.token issue '["test4", "10000.0000 TST", "init"]' -p test.token
 
 #permission
 ./cleos set account permission test1 active '{"threshold": 1,"keys": [{"key": "EOS4vbn668HGuMoCKK4dFWqPvgK1FxHc5FfP5Rt7DtVXTk7RkPmwM","weight": 1}],"accounts": [{"permission":{"actor":"test.coin","permission":"eosio.code"},"weight":1}]}' owner -p test1
 ./cleos set account permission test2 active '{"threshold": 1,"keys": [{"key": "EOS4vbn668HGuMoCKK4dFWqPvgK1FxHc5FfP5Rt7DtVXTk7RkPmwM","weight": 1}],"accounts": [{"permission":{"actor":"test.coin","permission":"eosio.code"},"weight":1}]}' owner -p test2
+./cleos set account permission test3 active '{"threshold": 1,"keys": [{"key": "EOS4vbn668HGuMoCKK4dFWqPvgK1FxHc5FfP5Rt7DtVXTk7RkPmwM","weight": 1}],"accounts": [{"permission":{"actor":"test.coin","permission":"eosio.code"},"weight":1}]}' owner -p test3
+./cleos set account permission test4 active '{"threshold": 1,"keys": [{"key": "EOS4vbn668HGuMoCKK4dFWqPvgK1FxHc5FfP5Rt7DtVXTk7RkPmwM","weight": 1}],"accounts": [{"permission":{"actor":"test.coin","permission":"eosio.code"},"weight":1}]}' owner -p test4
+
+####push bet
+./cleos push action test.coin deposit '["test1", "100.0000 TST"]' -p test1
+./cleos push action test.coin pushbet  '[1, "1.0000 TST", "test1"]' -p test1
+
+./cleos push action test.coin deposit '["test2", "100.0000 TST"]' -p test2
+./cleos push action test.coin pushbet  '[0, "3.0000 TST", "test2"]' -p test2
+
+./cleos push action test.coin deposit '["test3", "100.0000 TST"]' -p test3
+./cleos push action test.coin pushbet  '[0, "1.0000 TST", "test3"]' -p test3
+
+./cleos push action test.coin deposit '["test4", "100.0000 TST"]' -p test4
+./cleos push action test.coin pushbet  '[1, "3.0000 TST", "test4"]' -p test4
 
 
-#./cleos push action test.coin pushbet  '[1, "1.0000 TST", "test1"]' -p test1
-#./cleos push action test.coin deposit '["test1", "100.0000 TST"]' -p test1
 #
 #
 #
